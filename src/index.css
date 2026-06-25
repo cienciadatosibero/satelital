@@ -1,0 +1,62 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #070a0f;
+  color: #e6edf5;
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar discreta */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(52, 224, 161, 0.35);
+}
+
+/* Rejilla sutil de fondo tipo sala de control */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(52, 224, 161, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 224, 161, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* El cursor de selección sobre el mapa */
+.leaflet-container {
+  background: #070a0f;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Respeta reduce-motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
