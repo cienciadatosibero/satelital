@@ -438,7 +438,7 @@ export default function Scan() {
           <div className="mb-3 flex items-center justify-between">
             <Eyebrow>escaneo por área</Eyebrow>
             <div className="flex items-center gap-2">
-              <Badge tone="neutral">conf {CONF_FIJA} · máx sensibilidad</Badge>
+              <Badge tone="neutral">Confianza: {Math.round(confianza * 100)}%</Badge>
               {detecciones.length > 0 && (
                 <>
                   <Badge tone="signal">{confirmadas} confirmados</Badge>
