@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { resolverBaseApi } from './apiConfig';
 
-// En producción NO suponemos que Vercel aloja Express en este mismo dominio.
-// Es obligatorio configurar VITE_API_URL con el dominio público del backend.
+// En producción VITE_API_URL=/api usa el proxy de vercel.json: el navegador
+// llama al mismo origen y Vercel reenvía al backend real.
 export const API_BASE = resolverBaseApi(import.meta.env.VITE_API_URL, import.meta.env.DEV);
 
 const api = axios.create({

@@ -1,9 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "env": {
-    "VITE_API_URL": "https://satelital-backend.vercel.app"
-  },
   "rewrites": [
+    { "source": "/api/:path*", "destination": "https://satelital-backend.vercel.app/api/:path*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

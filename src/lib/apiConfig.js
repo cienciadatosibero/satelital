@@ -1,7 +1,7 @@
 /**
  * Dev: Vite sirve /api mediante su proxy a localhost:3000.
- * Producción: VITE_API_URL debe apuntar a la API REAL publicada.
- * Se aceptan tanto https://backend.example como https://backend.example/api.
+ * Producción: VITE_API_URL=/api funciona con el proxy de vercel.json.
+ * También se aceptan URLs completas si se despliega sin proxy.
  */
 export function resolverBaseApi(configurada, desarrollo = false) {
   const valor = String(configurada ?? '').trim();
