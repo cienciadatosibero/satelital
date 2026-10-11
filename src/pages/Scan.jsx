@@ -21,11 +21,12 @@ import {
 } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
-import api from '../lib/api';
+import api, { API_BASE } from '../lib/api';
 import { Eyebrow, Button, Badge, Spinner } from '../components/ui';
 import ReviewPanel from '../components/ReviewPanel';
 
-const CONF_FIJA = 0.05; // máxima sensibilidad — detecta todo, se revisa manual
+// Umbral inicial equilibrado. Ajustable para priorizar cobertura o precisión.
+const CONF_INICIAL = 0.20;
 
 const iconoColor = (estado) => {
   const color =
@@ -74,6 +75,7 @@ function aBounds(a, b) {
 
 export default function Scan() {
   const [modeloActivo, setModeloActivo] = useState(null);
+  const [confianza, setConfianza] = useState(CONF_INICIAL);
 
   // Definición del área
   const [modoDibujo, setModoDibujo] = useState(false);
@@ -123,7 +125,11 @@ export default function Scan() {
     west: parseFloat(oeste),
   };
   const boundsValidos =
-    Object.values(boundsActivos).every((v) => !isNaN(v)) &&
+    Object.values(boundsActivos).every((v) => Number.isFinite(v)) &&
+    Math.abs(boundsActivos.north) <= 85.05112878 &&
+    Math.abs(boundsActivos.south) <= 85.05112878 &&
+    Math.abs(boundsActivos.east) <= 180 &&
+    Math.abs(boundsActivos.west) <= 180 &&
     boundsActivos.north > boundsActivos.south &&
     boundsActivos.east > boundsActivos.west;
 
@@ -151,12 +157,11 @@ export default function Scan() {
     setDetecciones([]);
     setSesionId(null);
     setMetricas(null);
-    setProgreso({ celda: 0, total_celdas: 0, detecciones_acumuladas: 0 });
+    setProgreso({ celda: 0, total_celdas: 0, detecciones_acumuladas: 0, fase: 'detectando' });
 
     try {
       const token = localStorage.getItem('sat_token');
-      const base = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-      const resp = await fetch(`${base}/detectar-area`, {
+      const resp = await fetch(`${API_BASE}/detectar-area`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -165,7 +170,7 @@ export default function Scan() {
         body: JSON.stringify({
           bounds: boundsActivos,
           lado_px: 640,
-          confianza: CONF_FIJA,
+          confianza,
           guardar: true,
           nombre_sesion: `Área ${new Date().toLocaleString('es-MX')}`,
         }),
@@ -199,13 +204,16 @@ export default function Scan() {
           const datos = JSON.parse(dataLine);
 
           if (evento === 'inicio') {
-            setProgreso({ celda: 0, total_celdas: datos.total_celdas, detecciones_acumuladas: 0 });
+            setProgreso({ celda: 0, total_celdas: datos.total_celdas, detecciones_acumuladas: 0, fase: 'detectando' });
           } else if (evento === 'progreso') {
             setProgreso({
               celda: datos.celda,
               total_celdas: datos.total_celdas,
               detecciones_acumuladas: datos.detecciones_acumuladas,
+              fase: 'detectando',
             });
+          } else if (evento === 'verificacion') {
+            setProgreso(datos);
           } else if (evento === 'fin') {
             resultadoFinal = datos;
           } else if (evento === 'error') {
@@ -214,6 +222,9 @@ export default function Scan() {
         }
       }
 
+      if (!resultadoFinal) {
+        throw new Error('La conexión terminó antes de recibir el resultado. Revisa el API y el proxy.');
+      }
       if (resultadoFinal) {
         const dets = resultadoFinal.detecciones.map((d) => ({ ...d, revision: 'pendiente' }));
         setDetecciones(dets);
@@ -227,7 +238,7 @@ export default function Scan() {
       setProcesando(false);
       setProgreso(null);
     }
-  }, [boundsActivos, boundsValidos]);
+  }, [boundsActivos, boundsValidos, confianza]);
 
   const revisar = async (index, estado) => {
     setDetecciones((prev) => {
@@ -239,8 +250,11 @@ export default function Scan() {
     if (det?.id) {
       try {
         await api.patch(`/detecciones/${det.id}`, { revision: estado });
-      } catch {
-        /* reintento silencioso */
+      } catch (e) {
+        setDetecciones((prev) => prev.map((fila) =>
+          fila.id === det.id ? { ...fila, revision: det.revision } : fila
+        ));
+        setError(e.response?.data?.message || 'No se guardó la revisión. Vuelve a intentarlo.');
       }
     }
   };
@@ -251,8 +265,7 @@ export default function Scan() {
     if (!sesionId) return;
     try {
       const token = localStorage.getItem('sat_token');
-      const base = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-      const resp = await fetch(`${base}/sesiones/${sesionId}/exportar`, {
+      const resp = await fetch(`${API_BASE}/sesiones/${sesionId}/exportar`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!resp.ok) {
@@ -363,12 +376,12 @@ export default function Scan() {
                   </div>
                   <div className="mt-2 flex justify-between font-mono text-xs text-white/60">
                     <span>
-                      celda {progreso.celda} / {progreso.total_celdas}
+                      {progreso.fase === 'verificando' ? 'panel' : 'celda'} {progreso.celda} / {progreso.total_celdas}
                     </span>
                     <span>{Math.round((progreso.celda / progreso.total_celdas) * 100)}%</span>
                   </div>
                   <div className="mt-1 font-mono text-xs text-signal">
-                    {progreso.detecciones_acumuladas} detecciones encontradas
+                    {progreso.detecciones_acumuladas} {progreso.fase === 'verificando' ? 'paneles verificados' : 'candidatos encontrados'}
                   </div>
                 </>
               ) : (
@@ -476,6 +489,24 @@ export default function Scan() {
             <Button variant={modoDibujo ? 'amber' : 'ghost'} onClick={iniciarDibujo} className="h-11">
               <Square size={16} /> {modoDibujo ? 'Dibujando…' : 'Dibujar área'}
             </Button>
+
+            <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-base-900/85 px-3 py-2 text-xs text-white/70" title="Confianza baja: más candidatos, incluidos falsos positivos. Confianza alta: resultados más estrictos.">
+              <span>Confianza mínima</span>
+              <select
+                aria-label="Confianza mínima del modelo"
+                className="rounded-md border border-white/20 bg-base-900 px-2 py-1.5 font-mono text-white outline-none focus:border-signal"
+                value={confianza}
+                disabled={procesando}
+                onChange={(e) => setConfianza(Number(e.target.value))}
+              >
+                <option value={0.10}>10% · sensible</option>
+                <option value={0.15}>15%</option>
+                <option value={0.20}>20% · equilibrada</option>
+                <option value={0.25}>25%</option>
+                <option value={0.35}>35% · estricta</option>
+                <option value={0.50}>50%</option>
+              </select>
+            </label>
 
             <Button onClick={escanearArea} disabled={procesando || !boundsValidos} className="h-11">
               {procesando ? <Spinner /> : <><ScanLine size={16} /> Escanear área</>}

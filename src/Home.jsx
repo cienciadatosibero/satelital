@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import html2canvas from 'html2canvas';
 import 'leaflet/dist/leaflet.css';
+import { API_BASE } from './lib/api';
 
 // 1. Componente que mueve el mapa cuando escribes las coordenadas manualmente
 function RecentrarMapa({ lat, lng }) {
@@ -61,7 +62,7 @@ function Home() {
       setImagenOriginal(base64Image); // Mostrar preview de lo enviado
 
       // 2. Enviar la imagen a Node.js
-      const respuesta = await fetch('http://localhost:3000/api/yolo/analizar-imagen', {
+      const respuesta = await fetch(`${API_BASE}/yolo/analizar-imagen`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 

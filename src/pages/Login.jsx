@@ -84,9 +84,6 @@ export default function Login() {
           </Button>
         </form>
 
-        <p className="mt-6 text-center font-mono text-[11px] text-white/30">
-          demo · admin / admin123 · invitado / invitado123
-        </p>
       </motion.div>
     </div>
   );

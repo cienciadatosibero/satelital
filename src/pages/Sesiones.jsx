@@ -10,7 +10,7 @@ import {
   Check,
   CheckCircle2,
 } from 'lucide-react';
-import api from '../lib/api';
+import api, { API_BASE } from '../lib/api';
 import { Eyebrow, Badge, Spinner, Button } from '../components/ui';
 
 export default function Sesiones() {
@@ -34,8 +34,7 @@ export default function Sesiones() {
 
   const descargar = async (id) => {
     const token = localStorage.getItem('sat_token');
-    const base = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-    const resp = await fetch(`${base}/sesiones/${id}/exportar`, {
+    const resp = await fetch(`${API_BASE}/sesiones/${id}/exportar`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!resp.ok) {
@@ -60,6 +59,11 @@ export default function Sesiones() {
 
   const tonoEstado = (e) =>
     e === 'exportada' ? 'signal' : e === 'revisada' ? 'amber' : 'neutral';
+  const nombreEstado = (e) => ({
+    en_progreso: 'Pendiente de revisión',
+    revisada: 'Revisada',
+    exportada: 'Exportada',
+  }[e] || e);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -98,7 +102,7 @@ export default function Sesiones() {
                 </p>
               </div>
               <Badge tone="neutral">{s.total_detecciones} det.</Badge>
-              <Badge tone={tonoEstado(s.estado)}>{s.estado}</Badge>
+              <Badge tone={tonoEstado(s.estado)}>{nombreEstado(s.estado)}</Badge>
               <Button variant="ghost" onClick={() => setModalSesion(s)} className="h-9 px-3">
                 <Eye size={15} /> Ver
               </Button>
