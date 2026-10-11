@@ -161,7 +161,7 @@ export default function Landing() {
         <div className="landing-copy">
           <div className="landing-eyebrow"><span className="landing-status-dot" /> INTELIGENCIA GEOESPACIAL</div>
           <h1>Explora la Tierra.<span>Detecta el futuro.</span></h1>
-          <p>Detección de paneles solares mediante imágenes satelitales e inteligencia artificial.</p>
+          <p>Detección mediante imágenes satelitales e inteligencia artificial.</p>
           <Link to={cta} className="landing-hero-login">{ctaText}<ArrowRight size={20} /></Link>
           <div className="landing-copy-foot"><Orbit size={15} /> OBSERVA · ANALIZA · DESCUBRE</div>
         </div>

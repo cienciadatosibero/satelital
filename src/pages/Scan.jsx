@@ -75,6 +75,14 @@ function aBounds(a, b) {
 
 export default function Scan() {
   const [modeloActivo, setModeloActivo] = useState(null);
+  const [modeloTemporal, setModeloTemporal] = useState(() => {
+    try {
+      const m = JSON.parse(sessionStorage.getItem('sat_temp_model') || 'null');
+      if (m && m.expira > Date.now()) return m;
+    } catch { /* información antigua o corrupta */ }
+    sessionStorage.removeItem('sat_temp_model');
+    return null;
+  });
   const [confianza, setConfianza] = useState(CONF_INICIAL);
 
   // Definición del área
@@ -159,6 +167,7 @@ export default function Scan() {
     setMetricas(null);
     setProgreso({ celda: 0, total_celdas: 0, detecciones_acumuladas: 0, fase: 'detectando' });
 
+    const tempId = modeloTemporal?.id || null;
     try {
       const token = localStorage.getItem('sat_token');
       const resp = await fetch(`${API_BASE}/detectar-area`, {
@@ -171,7 +180,8 @@ export default function Scan() {
           bounds: boundsActivos,
           lado_px: 640,
           confianza,
-          guardar: true,
+          guardar: !tempId,
+          temp_model_id: tempId,
           nombre_sesion: `Área ${new Date().toLocaleString('es-MX')}`,
         }),
       });
@@ -235,10 +245,14 @@ export default function Scan() {
     } catch (err) {
       setError(err.message || 'No se pudo completar el escaneo del área.');
     } finally {
+      if (tempId) {
+        sessionStorage.removeItem('sat_temp_model');
+        setModeloTemporal(null);
+      }
       setProcesando(false);
       setProgreso(null);
     }
-  }, [boundsActivos, boundsValidos, confianza]);
+  }, [boundsActivos, boundsValidos, confianza, modeloTemporal]);
 
   const revisar = async (index, estado) => {
     setDetecciones((prev) => {
@@ -397,9 +411,9 @@ export default function Scan() {
       {/* Estado del modelo + ayuda dibujo */}
       <div className="absolute left-4 top-4 z-[600] flex flex-col gap-2">
         <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-base-900/85 px-3 py-2 backdrop-blur">
-          <LayersIcon size={15} className={modeloActivo ? 'text-signal' : 'text-amber'} />
+          <LayersIcon size={15} className={modeloTemporal || modeloActivo ? 'text-signal' : 'text-amber'} />
           <span className="font-mono text-xs text-white/70">
-            {modeloActivo ? modeloActivo.nombre : 'sin modelo activo'}
+            {modeloTemporal ? `${modeloTemporal.nombre} · temporal (1 escaneo)` : modeloActivo ? modeloActivo.nombre : 'sin modelo activo'}
           </span>
         </div>
         {modoDibujo && (
@@ -427,7 +441,7 @@ export default function Scan() {
             onRevisar={revisar}
             onCerrar={() => setRevisando(false)}
             onIrA={(d) => mapaRef.current?.setView([d.lat, d.lng], mapaRef.current.getZoom())}
-            modelo={modeloActivo}
+            modelo={modeloTemporal || modeloActivo}
           />
         )}
       </AnimatePresence>
