@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Satellite, ArrowRight } from 'lucide-react';
+import { Satellite, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Button, Field, Eyebrow } from '../components/ui';
+import { mensajeErrorLogin } from '../lib/apiConfig';
 
 export default function Login() {
   const { login } = useAuth();
@@ -11,6 +12,7 @@ export default function Login() {
   const [form, setForm] = useState({ usuario: '', password: '' });
   const [error, setError] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [mostrarPassword, setMostrarPassword] = useState(false);
 
   const enviar = async (e) => {
     e.preventDefault();
@@ -20,7 +22,7 @@ export default function Login() {
       await login(form);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'No se pudo iniciar sesión');
+      setError(mensajeErrorLogin(err));
     } finally {
       setCargando(false);
     }
@@ -57,16 +59,39 @@ export default function Login() {
             label="Usuario"
             value={form.usuario}
             onChange={(e) => setForm({ ...form, usuario: e.target.value })}
-            placeholder="admin"
+            placeholder="Ingresa tu usuario"
+            name="usuario"
+            autoComplete="username"
+            required
             autoFocus
           />
-          <Field
-            label="Contraseña"
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            placeholder="••••••••"
-          />
+          <label className="flex flex-col gap-1.5">
+            <span className="text-[11px] font-mono uppercase tracking-wider text-white/50">
+              Contraseña
+            </span>
+            <div className="relative">
+              <input
+                name="password"
+                type={mostrarPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder="••••••••"
+                autoComplete="current-password"
+                required
+                className="h-11 w-full rounded-xl border border-white/10 bg-base-900/80 px-4 pr-12 font-mono text-sm text-white outline-none transition-colors focus:border-signal/60"
+              />
+              <button
+                type="button"
+                onClick={() => setMostrarPassword((anterior) => !anterior)}
+                aria-label={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                aria-pressed={mostrarPassword}
+                title={mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/50 transition-colors hover:text-signal focus-visible:outline focus-visible:outline-2 focus-visible:outline-signal"
+              >
+                {mostrarPassword ? <EyeOff size={19} /> : <Eye size={19} />}
+              </button>
+            </div>
+          </label>
 
           {error && (
             <motion.p

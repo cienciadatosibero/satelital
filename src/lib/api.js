@@ -1,20 +1,26 @@
 import axios from 'axios';
+import { resolverBaseApi } from './apiConfig';
 
-export const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+// En producción NO suponemos que Vercel aloja Express en este mismo dominio.
+// Es obligatorio configurar VITE_API_URL con el dominio público del backend.
+export const API_BASE = resolverBaseApi(import.meta.env.VITE_API_URL, import.meta.env.DEV);
 
 const api = axios.create({
-  baseURL: API_BASE,
+  baseURL: API_BASE || '/api',
   timeout: 180000,
 });
 
-// Adjunta el token en cada petición
 api.interceptors.request.use((config) => {
+  if (!API_BASE) {
+    const error = new Error('No se ha configurado VITE_API_URL para la API.');
+    error.code = 'API_NOT_CONFIGURED';
+    return Promise.reject(error);
+  }
   const token = localStorage.getItem('sat_token');
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 
-// Si el token expira, limpia y manda a login
 api.interceptors.response.use(
   (res) => res,
   (err) => {
