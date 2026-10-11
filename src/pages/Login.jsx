@@ -20,7 +20,7 @@ export default function Login() {
     setCargando(true);
     try {
       await login(form);
-      navigate('/');
+      navigate('/scan');
     } catch (err) {
       setError(mensajeErrorLogin(err));
     } finally {

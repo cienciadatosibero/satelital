@@ -26,7 +26,7 @@ export default function Navbar() {
 
   const salir = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   return (
@@ -44,7 +44,7 @@ export default function Navbar() {
       </div>
 
       <nav className="ml-2 flex items-center gap-1">
-        <NavItem to="/" icon={Map}>
+        <NavItem to="/scan" icon={Map}>
           Escaneo
         </NavItem>
         <NavItem to="/sesiones" icon={FolderArchive}>

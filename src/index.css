@@ -60,3 +60,39 @@ body {
     transition-duration: 0.001ms !important;
   }
 }
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+.landing-star {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0 10px rgba(255,255,255,0.6), 0 0 18px rgba(52,224,161,0.18);
+}
+
+.landing-grid {
+  background-image:
+    linear-gradient(rgba(52, 224, 161, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(52, 224, 161, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(circle at center, rgba(0,0,0,1), transparent 80%);
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.5); }
+}
+
+.animate-twinkle {
+  animation-name: twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
