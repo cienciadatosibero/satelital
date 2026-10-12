@@ -33,6 +33,20 @@
 .landing-brand-icon { width: 43px; height: 43px; border: 1px solid rgba(41,222,170,.4); display: grid; place-items: center; background: rgba(25,181,149,.10); border-radius: 13px; color: #34e0a1; box-shadow: 0 0 30px rgba(52,224,161,.08); }
 .landing-brand strong { display: block; font-size: 17px; letter-spacing: -.025em; line-height: 1.2; }
 .landing-brand small { display: block; font: 600 9px/1.7 'JetBrains Mono', monospace; letter-spacing: .29em; color: #86a8ad; }
+/* IBERO Ciudad de México + RIAAEB. Integrados a la barra superior, sin imágenes de fondo blanco. */
+.landing-institutions { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; gap: 15px; color: #53efb1; white-space: nowrap; pointer-events: none; }
+.landing-ibero { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+.landing-ibero-name { font-family: Georgia, 'Times New Roman', serif; font-size: 29px; letter-spacing: .025em; font-weight: 400; color: #65f4bf; }
+.landing-ibero-city { font-family: Georgia, 'Times New Roman', serif; font-size: 8px; line-height: 1.25; margin-top: 2px; letter-spacing: .10em; font-weight: 700; color: #72d6af; }
+.landing-institutions-divider { width: 1px; height: 36px; background: rgba(120, 246, 191, .32); }
+.landing-ria { display: inline-flex; gap: 9px; align-items: center; }
+.landing-ria-symbol { width: 37px; height: 37px; display: grid; place-items: center; border-radius: 12px; color: #09372b; background: linear-gradient(135deg,#7bffd1,#24c890); box-shadow: 0 4px 20px rgba(49, 230, 162, .16); }
+.landing-ria-symbol svg { width: 29px; height: 29px; }
+.landing-ria-name { font-family: 'Space Grotesk', system-ui, sans-serif; color: #e2fff0; font-size: 23px; font-weight: 600; letter-spacing: -.055em; }
+.landing-ria-name span { color: #48dfa4; }
+@media (max-width: 1100px) and (min-width: 801px) {
+  .landing-institutions { transform: translate(-50%, -50%) scale(.85); }
+}
 .landing-header-actions { display: flex; align-items: center; gap: 17px; }
 .landing-windows-pill { display: inline-flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 600; color: #9bbaad; }
 .landing-header-login, .landing-hero-login { display: inline-flex; align-items: center; justify-content: center; gap: 12px; text-decoration: none; color: #03110e; background: #37e4b2; font-size: 14px; font-weight: 800; border-radius: 14px; box-shadow: 0 8px 34px rgba(55,228,178,.11); transition: transform .24s, box-shadow .24s, background .24s; white-space: nowrap; }
@@ -119,7 +133,16 @@
 }
 @media (max-width: 800px) {
   .orbital-home { height: auto; min-height: 100svh; overflow: visible; }
-  .landing-navbar { padding: 16px 20px; height: 74px; }
+  .landing-navbar { padding: 12px 20px 8px; height: auto; min-height: 112px; display: grid; grid-template-columns: minmax(0,1fr) auto; grid-template-areas: "brand actions" "institutions institutions"; row-gap: 10px; }
+  .landing-brand { grid-area: brand; }
+  .landing-header-actions { grid-area: actions; }
+  .landing-institutions { position: static; transform: none; grid-area: institutions; justify-self: center; gap: 13px; }
+  .landing-ibero-name { font-size: 24px; }
+  .landing-ibero-city { font-size: 7px; }
+  .landing-ria-symbol { width: 31px; height: 31px; border-radius: 10px; }
+  .landing-ria-symbol svg { width: 24px; height: 24px; }
+  .landing-ria-name { font-size: 20px; }
+  .landing-institutions-divider { height: 31px; }
   .landing-brand-icon { width: 40px; height: 40px; }
   .landing-brand strong { font-size: 15px; }
   .landing-brand small { font-size: 8px; }

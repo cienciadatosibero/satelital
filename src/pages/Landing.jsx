@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  ArrowDownToLine, ArrowRight, Check, ChevronDown, Cpu, Download,
+  ArrowDownToLine, ArrowRight, Check, Cpu, Download,
   ExternalLink, Laptop, Orbit, Satellite, Settings2, ShieldCheck, Sparkles,
 } from 'lucide-react';
 import './landing.css';
@@ -90,6 +90,35 @@ function GreenSatellite({ satelliteRef, secondary = false }) {
         <path d="M51 40q5.1 5 10 0" fill="none" stroke="#07513b" strokeWidth="2" strokeLinecap="round" />
         <path d="M49 51l-6 7h26l-6-7" fill="#57df9c" stroke="#9cf8c7" strokeWidth="1" />
       </svg>
+    </div>
+  );
+}
+
+// Identificadores institucionales en verde, respetando la composición del ejemplo.
+function InstitutionalLogos() {
+  return (
+    <div className="landing-institutions" aria-label="IBERO Ciudad de México y RIAAEB">
+      <div className="landing-ibero" aria-label="IBERO Ciudad de México">
+        <span className="landing-ibero-name">IBERO</span>
+        <span className="landing-ibero-city">CIUDAD DE MÉXICO</span>
+      </div>
+      <span className="landing-institutions-divider" aria-hidden="true" />
+      <div className="landing-ria" aria-label="RIAAEB">
+        <span className="landing-ria-symbol" aria-hidden="true">
+          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6 31 12.5v15L20 34 9 27.5v-15L20 6Z" stroke="currentColor" strokeWidth="1.5" />
+            <path d="m20 6 0 11m-11-4.5 11 9.5 11-9.5M9 27.5l11-9.5 11 9.5M20 22v12" stroke="currentColor" strokeWidth="1.15" opacity=".9" />
+            <circle cx="20" cy="6" r="2.6" fill="currentColor" />
+            <circle cx="9" cy="12.5" r="2.6" fill="currentColor" />
+            <circle cx="31" cy="12.5" r="2.6" fill="currentColor" />
+            <circle cx="9" cy="27.5" r="2.6" fill="currentColor" />
+            <circle cx="31" cy="27.5" r="2.6" fill="currentColor" />
+            <circle cx="20" cy="34" r="2.6" fill="currentColor" />
+            <circle cx="20" cy="21" r="3.5" fill="currentColor" />
+          </svg>
+        </span>
+        <span className="landing-ria-name">RIA<span>AEB</span></span>
+      </div>
     </div>
   );
 }
@@ -198,6 +227,7 @@ export default function Landing() {
           <span className="landing-brand-icon"><Satellite size={22} strokeWidth={1.7} /></span>
           <span><strong>SatDataset</strong><small>VISIÓN ORBITAL</small></span>
         </a>
+        <InstitutionalLogos />
         <div className="landing-header-actions">
           <span className="landing-windows-pill"><Laptop size={15} /> Windows 10 / 11</span>
           <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="landing-header-login">
