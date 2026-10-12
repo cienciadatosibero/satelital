@@ -25,7 +25,7 @@ export default function Login() {
         setError('Este acceso es exclusivo para administradores. Usa el programa de Windows para realizar escaneos.');
         return;
       }
-      navigate('/admin/usuarios', { replace: true });
+      navigate('/admin/general', { replace: true });
     } catch (err) {
       setError(mensajeErrorLogin(err));
     } finally {

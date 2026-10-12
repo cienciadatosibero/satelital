@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
-  ArrowLeft, CheckCircle2, KeyRound, LockKeyhole, LogOut,
+  CheckCircle2, ChevronLeft, ChevronRight, KeyRound, LockKeyhole,
   Pencil, Search, Shield, Trash2, UserPlus, Users, X,
 } from 'lucide-react';
 import api from '../lib/api';
-import { Badge, Button, Card, Eyebrow, Spinner } from '../components/ui';
+import { Badge, Button, Spinner } from '../components/ui';
 import { useAuth } from '../context/AuthContext';
 
 const nuevoUsuario = { nombre: '', usuario: '', password: '', rol: 'invitado' };
@@ -37,8 +35,7 @@ function Modal({ title, children, onClose }) {
 }
 
 export default function Usuarios() {
-  const { usuario: actual, logout } = useAuth();
-  const navigate = useNavigate();
+  const { usuario: actual } = useAuth();
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -46,6 +43,8 @@ export default function Usuarios() {
   const [creando, setCreando] = useState(false);
   const [form, setForm] = useState(nuevoUsuario);
   const [busqueda, setBusqueda] = useState('');
+  const [pagina, setPagina] = useState(1);
+  const [creacionAbierta, setCreacionAbierta] = useState(false);
   const [editando, setEditando] = useState(null);
   const [borrando, setBorrando] = useState(null);
   const [procesando, setProcesando] = useState(false);
@@ -66,6 +65,12 @@ export default function Usuarios() {
   const filtrados = useMemo(() => usuarios.filter((u) =>
     `${u.nombre} ${u.usuario} ${u.rol}`.toLowerCase().includes(busqueda.trim().toLowerCase())), [usuarios, busqueda]);
 
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / 10));
+  const paginaActual = Math.min(pagina, totalPaginas);
+  const visibles = filtrados.slice((paginaActual - 1) * 10, paginaActual * 10);
+  const desde = filtrados.length ? (paginaActual - 1) * 10 + 1 : 0;
+  const hasta = Math.min(paginaActual * 10, filtrados.length);
+
   const mensajeError = (e, fallback) => e.response?.data?.message || fallback;
 
   const crear = async (e) => {
@@ -74,6 +79,8 @@ export default function Usuarios() {
     try {
       await api.post('/usuarios', { ...form, nombre: form.nombre.trim(), usuario: form.usuario.trim() });
       setForm(nuevoUsuario);
+      setCreacionAbierta(false);
+      setPagina(1);
       setExito('Usuario creado. Ya puede iniciar sesión desde SatDataset para Windows.');
       await cargar();
     } catch (e) {
@@ -122,85 +129,70 @@ export default function Usuarios() {
     } finally { setProcesando(false); }
   };
 
-  const cerrarSesion = () => { logout(); navigate('/login', { replace: true }); };
-  const activos = usuarios.filter((u) => Boolean(u.activo)).length;
 
   return (
-    <div className="min-h-screen bg-base-900 pb-12 text-white">
-      <header className="border-b border-white/10 bg-base-800/60">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4 sm:px-6">
-          <Link to="/" className="inline-flex items-center gap-2 text-sm text-white/60 hover:text-signal"><ArrowLeft size={16} /> Volver a la portada</Link>
-          <div className="flex items-center gap-3 text-sm text-white/50">
-            <span className="hidden sm:inline">{actual?.nombre} · Administrador</span>
-            <button type="button" onClick={cerrarSesion} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-white/70 hover:bg-white/10 hover:text-white"><LogOut size={15} /> Cerrar sesión</button>
-          </div>
+    <div className="w-full min-w-0 pb-8 text-white">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-[.2em] text-signal">Panel de administración</p>
+          <h1 className="mt-2 flex items-center gap-3 text-2xl font-bold sm:text-3xl"><Users size={27} className="text-signal"/>Usuarios</h1>
+          <p className="mt-2 text-sm text-white/50">Gestiona las cuentas del programa Windows. Solo los administradores pueden entrar a este panel web.</p>
         </div>
-      </header>
-      <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-        <Eyebrow>panel de administración</Eyebrow>
-        <h1 className="mt-2 flex items-center gap-3 text-2xl font-bold sm:text-3xl"><Users className="text-signal" size={28} /> Gestión de usuarios</h1>
-        <p className="mt-2 max-w-2xl text-sm text-white/50">Crea y administra las cuentas que podrán acceder al programa SatDataset en Windows. La detección se realiza localmente.</p>
+        <Button type="button" onClick={() => { setCreacionAbierta(true); setError(''); setExito(''); }}><UserPlus size={17}/> Nuevo usuario</Button>
+      </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-3">
-          {[['Total de cuentas', usuarios.length], ['Cuentas activas', activos], ['Administradores', usuarios.filter((u) => u.rol === 'admin').length]].map(([label, numero]) => (
-            <div key={label} className="rounded-2xl border border-white/10 bg-base-800/70 p-4">
-              <span className="text-xs text-white/50">{label}</span><strong className="mt-2 block text-2xl font-bold text-signal">{numero}</strong>
-            </div>
-          ))}
-        </div>
+      {error && !editando && !borrando && !creacionAbierta && <div role="alert" className="mb-4 rounded-xl border border-alert/30 bg-alert/10 px-4 py-3 text-sm text-alert">{error}</div>}
+      {exito && <div role="status" className="mb-4 flex items-center gap-2 rounded-xl border border-signal/25 bg-signal/10 px-4 py-3 text-sm text-signal"><CheckCircle2 size={16}/> {exito}</div>}
 
-        {error && <div role="alert" className="mt-5 rounded-xl border border-alert/30 bg-alert/10 px-4 py-3 text-sm text-alert">{error}</div>}
-        {exito && <div role="status" className="mt-5 flex items-center gap-2 rounded-xl border border-signal/25 bg-signal/10 px-4 py-3 text-sm text-signal"><CheckCircle2 size={16} /> {exito}</div>}
-
-        <Card className="mt-6 p-5 sm:p-6">
-          <h2 className="flex items-center gap-2 font-semibold"><UserPlus className="text-signal" size={19} /> Crear cuenta</h2>
-          <form onSubmit={crear} className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Campo label="Nombre completo" value={form.nombre} onChange={(v) => setForm({ ...form, nombre: v })} placeholder="Nombre y apellido" required />
-            <Campo label="Usuario" value={form.usuario} onChange={(v) => setForm({ ...form, usuario: v })} placeholder="usuario123" required autoComplete="off" />
-            <Campo label="Contraseña (mínimo 8 caracteres)" type="password" value={form.password} onChange={(v) => setForm({ ...form, password: v })} placeholder="Contraseña segura" required minLength={8} autoComplete="new-password" />
-            <label className="flex flex-col gap-1.5"><span className="text-[11px] font-mono uppercase tracking-wider text-white/50">Permisos</span>
-              <select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value })}
-                className="h-11 rounded-xl border border-white/10 bg-base-900/80 px-4 text-sm text-white outline-none focus:border-signal/60">
-                <option value="invitado">Usuario del programa (Windows)</option>
-                <option value="admin">Administrador (web y Windows)</option>
-              </select>
-            </label>
-            <div className="md:col-span-2"><Button type="submit" disabled={creando}>{creando ? <Spinner label="Creando…" /> : <><UserPlus size={16} /> Crear usuario</>}</Button></div>
-          </form>
-        </Card>
-
-        <div className="mb-3 mt-8 flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Cuentas registradas</h2>
-          <label className="relative flex w-full max-w-xs items-center sm:w-64">
-            <Search size={15} className="absolute left-3 text-white/40" />
-            <input value={busqueda} onChange={(e) => setBusqueda(e.target.value)} placeholder="Buscar usuario" aria-label="Buscar usuario"
-              className="h-10 w-full rounded-xl border border-white/10 bg-base-800 pl-9 pr-3 text-sm outline-none focus:border-signal/50" />
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-base-800/60">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-4 py-4 sm:px-5">
+          <div><h2 className="font-semibold">Cuentas registradas</h2><span className="text-xs text-white/45">{filtrados.length} coincidencias · 10 por página</span></div>
+          <label className="relative flex w-full items-center sm:w-72">
+            <Search size={16} className="absolute left-3 text-white/40" />
+            <input value={busqueda} onChange={(e) => { setBusqueda(e.target.value); setPagina(1); }} placeholder="Buscar nombre, usuario o rol" aria-label="Buscar usuario" className="h-10 w-full rounded-xl border border-white/10 bg-base-900/80 pl-10 pr-3 text-sm outline-none focus:border-signal/50" />
           </label>
         </div>
-        {cargando ? <Spinner label="Cargando usuarios…" /> : (
-          <div className="space-y-2">
-            {filtrados.length === 0 && <p className="rounded-xl border border-white/10 p-6 text-center text-white/50">No hay usuarios que coincidan.</p>}
-            {filtrados.map((u, index) => (
-              <motion.article key={u.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index, 8) * .035 }}
-                className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-base-800/60 p-4 sm:gap-4">
-                <span className={`grid h-11 w-11 place-items-center rounded-xl ${u.rol === 'admin' ? 'bg-signal/15 text-signal' : 'bg-white/5 text-white/60'}`}>
-                  {u.rol === 'admin' ? <Shield size={20} /> : <Users size={20} />}
-                </span>
-                <span className="min-w-0 flex-1"><strong className="block truncate text-sm">{u.nombre}</strong><span className="text-xs text-white/50">@{u.usuario}</span></span>
-                <span className="flex flex-wrap items-center gap-2">
-                  <Badge tone={u.rol === 'admin' ? 'signal' : 'neutral'}>{u.rol === 'admin' ? 'Admin' : 'Windows'}</Badge>
-                  <Badge tone={u.activo ? 'signal' : 'alert'}>{u.activo ? 'Activo' : 'Inactivo'}</Badge>
-                </span>
-                <span className="flex items-center gap-2">
-                  <button type="button" onClick={() => abrirEditar(u)} title="Editar usuario" aria-label={`Editar ${u.usuario}`} className="rounded-lg border border-white/10 p-2.5 text-white/65 hover:bg-white/10 hover:text-white"><Pencil size={16} /></button>
-                  {Number(u.id) !== Number(actual?.id) && <button type="button" onClick={() => { setError(''); setBorrando(u); }} title="Eliminar usuario" aria-label={`Eliminar ${u.usuario}`} className="rounded-lg border border-white/10 p-2.5 text-white/45 hover:bg-alert/10 hover:text-alert"><Trash2 size={16} /></button>}
-                </span>
-              </motion.article>
-            ))}
+        {cargando ? <div className="p-8"><Spinner label="Cargando usuarios…"/></div> : <>
+          <div className="w-full overflow-x-auto">
+            <table className="w-full min-w-[690px] text-left text-sm">
+              <thead className="bg-white/[.035] text-[11px] uppercase tracking-[.11em] text-white/40">
+                <tr><th className="px-5 py-3 font-semibold">Nombre</th><th className="px-5 py-3 font-semibold">Usuario</th><th className="px-5 py-3 font-semibold">Permisos</th><th className="px-5 py-3 font-semibold">Estado</th><th className="px-5 py-3 text-right font-semibold">Acciones</th></tr>
+              </thead>
+              <tbody className="divide-y divide-white/[.07]">
+                {visibles.map((u) => <tr key={u.id} className="transition hover:bg-white/[.035]">
+                  <td className="px-5 py-3.5"><span className="flex items-center gap-2.5"><span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${u.rol === 'admin' ? 'bg-signal/15 text-signal' : 'bg-white/5 text-white/60'}`}>{u.rol === 'admin' ? <Shield size={17}/> : <Users size={17}/>}</span><strong className="font-medium">{u.nombre}</strong></span></td>
+                  <td className="px-5 py-3.5 text-white/65">@{u.usuario}</td>
+                  <td className="px-5 py-3.5"><Badge tone={u.rol === 'admin' ? 'signal' : 'neutral'}>{u.rol === 'admin' ? 'Administrador' : 'Windows'}</Badge></td>
+                  <td className="px-5 py-3.5"><Badge tone={u.activo ? 'signal' : 'alert'}>{u.activo ? 'Activo' : 'Inactivo'}</Badge></td>
+                  <td className="px-5 py-3.5"><div className="flex justify-end gap-2"><button type="button" onClick={() => abrirEditar(u)} title="Editar usuario" aria-label={`Editar ${u.usuario}`} className="rounded-lg border border-white/10 p-2 text-white/65 hover:bg-white/10 hover:text-white"><Pencil size={16}/></button>{Number(u.id) !== Number(actual?.id) && <button type="button" onClick={() => { setError(''); setBorrando(u); }} title="Eliminar usuario" aria-label={`Eliminar ${u.usuario}`} className="rounded-lg border border-white/10 p-2 text-white/45 hover:bg-alert/10 hover:text-alert"><Trash2 size={16}/></button>}</div></td>
+                </tr>)}
+              </tbody>
+            </table>
+            {filtrados.length === 0 && <p className="p-8 text-center text-sm text-white/50">No hay usuarios que coincidan con la búsqueda.</p>}
           </div>
-        )}
-      </main>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/10 px-4 py-4 text-xs text-white/50 sm:px-5">
+            <span>Mostrando {desde}–{hasta} de {filtrados.length}</span>
+            <div className="flex items-center gap-2">
+              <button type="button" disabled={paginaActual === 1} onClick={() => setPagina(paginaActual - 1)} aria-label="Página anterior" className="rounded-lg border border-white/10 p-2 text-white/75 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"><ChevronLeft size={17}/></button>
+              <span className="min-w-24 text-center text-xs font-semibold text-white/75">Página {paginaActual} de {totalPaginas}</span>
+              <button type="button" disabled={paginaActual === totalPaginas} onClick={() => setPagina(paginaActual + 1)} aria-label="Página siguiente" className="rounded-lg border border-white/10 p-2 text-white/75 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-30"><ChevronRight size={17}/></button>
+            </div>
+          </div>
+        </>}
+      </div>
 
+      {creacionAbierta && <Modal title="Crear usuario" onClose={() => { if (!creando) { setCreacionAbierta(false); setError(''); } }}>
+        <form onSubmit={crear} className="space-y-4">
+          <Campo label="Nombre completo" value={form.nombre} onChange={(v) => setForm({ ...form, nombre: v })} placeholder="Nombre y apellido" required />
+          <Campo label="Usuario" value={form.usuario} onChange={(v) => setForm({ ...form, usuario: v })} placeholder="usuario123" required autoComplete="off" />
+          <Campo label="Contraseña (mínimo 8 caracteres)" type="password" value={form.password} onChange={(v) => setForm({ ...form, password: v })} placeholder="Contraseña segura" required minLength={8} autoComplete="new-password" />
+          <label className="flex flex-col gap-1.5 text-xs text-white/60">Permisos
+            <select value={form.rol} onChange={(e) => setForm({ ...form, rol: e.target.value })} className="h-11 rounded-xl border border-white/10 bg-base-900 px-4 text-sm text-white"><option value="invitado">Usuario del programa (Windows)</option><option value="admin">Administrador (web y Windows)</option></select>
+          </label>
+          {error && <p role="alert" className="rounded-xl border border-alert/30 bg-alert/10 p-3 text-sm text-alert">{error}</p>}
+          <div className="flex justify-end gap-3"><button type="button" disabled={creando} onClick={() => { setCreacionAbierta(false); setError(''); }} className="rounded-lg px-4 py-2 text-sm text-white/55">Cancelar</button><Button type="submit" disabled={creando}>{creando ? 'Creando…' : <><UserPlus size={16}/> Crear usuario</>}</Button></div>
+        </form>
+      </Modal>}
       {editando && <Modal title={`Editar @${editando.usuario}`} onClose={() => { if (!procesando) { setEditando(null); setError(''); } }}>
         <form onSubmit={guardar} className="space-y-4">
           <Campo label="Nombre" value={editando.nombre} onChange={(v) => setEditando({ ...editando, nombre: v })} required />
