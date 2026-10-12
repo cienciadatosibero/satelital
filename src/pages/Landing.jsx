@@ -215,7 +215,6 @@ export default function Landing() {
             <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="landing-hero-login">
               <ArrowDownToLine size={21} /> Descargar para Windows <ArrowRight size={18} />
             </a>
-            <a href="#manual" className="landing-manual-link">Cómo instalar <ChevronDown size={16} /></a>
           </div>
           <div className="landing-release-note">
             <ShieldCheck size={15} /> {ready ? `Versión ${version || 'disponible'} · instalador oficial` : 'El instalador aparecerá al publicarlo en GitHub Releases'}
