@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   ArrowDownToLine, ArrowRight, Check, Cpu, Download,
-  ExternalLink, Laptop, Orbit, Satellite, Settings2, ShieldCheck, Sparkles,
+  ExternalLink, Laptop, LockKeyhole, Orbit, Satellite, Settings2, ShieldCheck, Sparkles,
 } from 'lucide-react';
 import './landing.css';
 
@@ -229,6 +229,9 @@ export default function Landing() {
         </a>
         <InstitutionalLogos />
         <div className="landing-header-actions">
+          <a href="/login" aria-label="Administración de usuarios" title="Administración de usuarios" className="landing-admin-access">
+            <LockKeyhole size={16} /><span>Administración</span>
+          </a>
           <span className="landing-windows-pill"><Laptop size={15} /> Windows 10 / 11</span>
           <a href={downloadUrl} target="_blank" rel="noopener noreferrer" className="landing-header-login">
             <Download size={16} /> Descargar

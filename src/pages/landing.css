@@ -177,3 +177,23 @@
   .landing-stars i, .landing-status-dot, .landing-hud-pulse, .landing-earth img { animation: none !important; }
   .landing-space-nebula, .landing-orbital-scene, .landing-earth, .landing-earth-halo, .landing-header-login, .landing-hero-login, .landing-install-card { transition: none; }
 }
+
+/* Entrada discreta al panel, sin desplazar la portada en móvil. */
+.landing-admin-access { display:inline-flex; align-items:center; gap:7px; padding:7px 9px; border:1px solid transparent; border-radius:10px; text-decoration:none; color:#99b8b5; font-size:12px; font-weight:600; white-space:nowrap; transition:color .2s, border-color .2s; }
+.landing-admin-access:hover { color:#62efc4; border-color:rgba(97,237,192,.23); }
+.landing-admin-access:focus-visible { outline:2px solid #62efc4; outline-offset:2px; }
+@media (max-width:1300px) and (min-width:801px) { .landing-admin-access span { display:none; } .landing-windows-pill { display:none; } }
+@media (max-width:800px) { .landing-admin-access { padding:7px 5px; } .landing-admin-access span { display:none; } .landing-header-actions { gap:8px; } }
+@media (max-width: 1500px) and (min-width: 801px) {
+  .landing-windows-pill { display: none; }
+}
+@media (max-width: 420px) {
+  .landing-navbar { padding-left: 14px; padding-right: 14px; column-gap: 4px; }
+  .landing-brand { gap: 7px; }
+  .landing-brand-icon { width: 35px; height: 35px; }
+  .landing-brand strong { font-size: 13px; }
+  .landing-brand small { font-size: 7px; letter-spacing: .13em; }
+  .landing-header-actions { gap: 3px; }
+  .landing-admin-access { padding: 5px; }
+  .landing-header-login { gap: 6px; padding: 0 8px; font-size: 11px; }
+}
